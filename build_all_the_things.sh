@@ -2,20 +2,21 @@
 
 # needs a GitHub branch or tag name -and- a org/project
 
-# exmaple:   bash build_all_the_things.sh v0.14.1 bitcoin/bitcoin
+# exmaple:   bash build_veil.sh v1.0.4.6 Veil-Project/veil
 # this will build:
 
 #     - Mac, Linux, Windows binaries, 32 and 64 bit as well as ARM
+
 green="\033[38;5;40m"
 magenta="\033[38;5;200m"
 cyan="\033[38;5;87m"
 reset="\033[0m"
 THISDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 masterApiEndpoint="https://api.github.com"
-repo="https://github.com/btc1/bitcoin"
+repo="https://github.com/Veil-Project/veil"
 
 get_latest_tag () {
-  local url="curl ${masterApiEndpoint}/repos/btc1/bitcoin/tags"
+  local url="curl ${masterApiEndpoint}/repos/Veil-Project/veil/tags"
   response=(`${url} 2>/dev/null | sed -n 's/"name": "\(.*\)",$/\1/p'`)
   echo ${response[0]}
 }
@@ -27,7 +28,7 @@ check_mac () {
   fi
 }
 
-fall_back_branch_or_tag="v1.14.1rc2"
+fall_back_branch_or_tag="master"
 branch_or_tag=
 if [ -z "${1}" ]; then
   branch_or_tag=`get_latest_tag`
@@ -43,19 +44,19 @@ if [ -n "${2}" ]; then
   repo="${2}"
 fi
 
-$THISDIR/build_builder.sh
+$THISDIR/build_gitian_veil.sh
 
-platforms=("mac" "windows" "linux")
+platforms=("osx" "win" "linux")
 
 for platform in "${platforms[@]}"; do
   check_mac "${platform}"
   sdate=`date +%s`
   echo -e "${cyan}starting $platform build of tag: ${branch_or_tag} at: `date`${reset}"
-  time docker run -h builder --name builder-$sdate \
+  time docker run -h gitian_veil --name gitian_veil-$sdate \
   -v $THISDIR/cache:/shared/cache:Z \
   -v $THISDIR/result:/shared/result:Z \
-  builder \
+  gitian_veil \
   "${branch_or_tag}" \
   "${repo}" \
-  "../bitcoin/contrib/gitian-descriptors/gitian-${platform}.yml"
+  "../veil/contrib/gitian-descriptors/gitian-${platform}.yml"
 done
