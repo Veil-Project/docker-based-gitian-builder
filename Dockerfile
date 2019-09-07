@@ -1,20 +1,22 @@
-FROM ubuntu:trusty
-MAINTAINER Chris Kleeschulte <chrisk@bitpay.com>
+FROM ubuntu:bionic
+MAINTAINER codeofalltrades <codeofalltrades@outlook.com>
 ENV DEBIAN_FRONTEND noninteractive
 WORKDIR /shared
 RUN apt-get update && \
 apt-get --no-install-recommends -yq install \
 locales \
 git-core \
+sudo \
 build-essential \
 ca-certificates \
+python3 \
 ruby \
 rsync && \
 apt-get -yq purge grub > /dev/null 2>&1 || true && \
 apt-get -y dist-upgrade && \
 locale-gen en_US.UTF-8 && \
 update-locale LANG=en_US.UTF-8 && \
-bash -c '[[ -d /shared/gitian-builder ]] || git clone https://github.com/kleetus/gitian-builder /shared/gitian-builder' && \
+bash -c '[[ -d /shared/gitian-builder ]] || git clone https://github.com/Nigho/gitian-builder /shared/gitian-builder' && \
 useradd -d /home/ubuntu -m -s /bin/bash ubuntu && \
 chown -R ubuntu.ubuntu /shared/ && \
 chown root.root /shared/gitian-builder/target-bin/grab-packages.sh && \
@@ -24,9 +26,9 @@ chown root.root /etc/sudoers.d/ubuntu && \
 chmod 0400 /etc/sudoers.d/ubuntu && \
 chown -R ubuntu.ubuntu /home/ubuntu
 USER ubuntu
-RUN printf "[[ -d /shared/bitcoin ]] || \
-git clone -b \$1 --depth 1 \$2 /shared/bitcoin && \
+RUN printf "[[ -d /shared/veil ]] || \
+git clone -b \$1 --depth 1 \$2 /shared/veil && \
 cd /shared/gitian-builder; \
-./bin/gbuild --skip-image --commit bitcoin=\$1 --url bitcoin=\$2 \$3" > /home/ubuntu/runit.sh
-CMD ["v1.14.1rc2","https://github.com/btc1/bitcoin.git","../bitcoin/contrib/gitian-descriptors/gitian-linux.yml"]
+./bin/gbuild --skip-image --commit veil=\$1 --url veil=\$2 \$3" > /home/ubuntu/runit.sh
+CMD ["master","https://github.com/Veil-Project/veil.git","../veil/contrib/gitian-descriptors/gitian-linux.yml"]
 ENTRYPOINT ["bash", "/home/ubuntu/runit.sh"]
