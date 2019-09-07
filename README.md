@@ -3,21 +3,21 @@
 ## TL;DR / Executive Summary
 
 1. Install [docker](https://docker.io) for your platform
-2. Clone or fork [this](https://github.com/kleetus/docker-based-gitian-builder) GH repo
+2. Clone or fork [this](https://github.com/Veil-Project/docker-based-gitian-builder) GH repo
 3. Ensure docker daemon is operating by starting the application. You should be able to run 'docker' at the command line without error.
 4. Building for Mac requires [this step](#building-binaries-for-mac-os-x) to be completed
 5. Run the convenience scripts in this repo:
 
-For building Bitcoin for ALL platforms and architectures in one command:
+For building Veil for ALL platforms and architectures in one command:
 ```bash
-$ bash build_all_the_things.sh # optionally include a branch/tag and repo url e.g. bash build_all_the_things segwit2x https://github.com/btc1/bitcoin
+$ bash build_veil.sh # optionally include a branch/tag and repo url e.g. bash build_veil.sh v1.0.4.6  https://github.com/Veil-Project/veil
 ```
 Once complete, proceed to [step 8](#step8).
 
 For building individual platforms:
 ```bash
-$ bash ./build_builder.sh # installs the base virtual machine (ubuntu 12.04 trusty) and dependencies, takes 5-10 minutes
-$ bash ./run_builder.sh # builds bitcoin itself per the argument to the CMD instruction in Dockerfile, takes 30+ minutes
+$ bash ./build_gitian_veil.sh # installs the base virtual machine (Ubuntu 18.04 Bionic) and dependencies, takes 5-10 minutes
+$ bash ./run_gitian_veil.sh # builds veil itself per the argument to the CMD instruction in Dockerfile, takes 60+ minutes
 ```
 
 Repeat the process for Windows and MacOSX targets (these will take less time because common dependencies are cached):
@@ -28,20 +28,20 @@ Repeat the process for Windows and MacOSX targets (these will take less time bec
 $ nano Dockerfile # use a text editor that you are comfortable with
 ```
 
-6. Change the gitian descriptor in the 'CMD' line (it might say ../bitcoin/contrib/gitian-descriptors/gitian-linux.yml currently) to: ../bitcoin/contrib/gitian-descriptors/gitian-osx.yml or ../bitcoin/contrib/gitian-descriptors/gitian-win.yml
+6. Change the gitian descriptor in the 'CMD' line (it might say ../veil/contrib/gitian-descriptors/gitian-linux.yml currently) to: ../veil/contrib/gitian-descriptors/gitian-osx.yml or ../veil/contrib/gitian-descriptors/gitian-win.yml
 7. Save the file and rerun:
 
 ```bash
 $ bash remove_all_containers.sh # this will remove all stopped/exited containers
-$ bash build_builder.sh
-$ bash run_builder.sh
+$ bash build_gitian_veil.sh
+$ bash run_gitian_veil.sh
 ```
 
 Please note that you will need the Mac development SDK in order to build for Mac. Please see the sections [below](#mac_sdk) about how to get that tarball.
 
 The end result is that you will have a manifest and build artifacts/binaries in the directory 'result/out'.
 
-<a name="step8"></a>8. Fork [gitian.sigs](https://github.com/btc1/gitian.sigs)
+<a name="step8"></a>8. Fork [gitian.sigs](https://github.com/Veil-Project/gitian.sigs)
 
 9. Use the convenience script to add your manifest files and sign them:
 
@@ -55,7 +55,7 @@ $ bash move_and_sign_manifest.sh
 $ gpg -b gitian.sigs/<version>/<name>/<manifest yml>
 ```
 
-11. You should have 2 files in the manifest directory, the manifest itself, e.g. `bitcoin-linux-#.#.#.yml`, and the detached digital signature, e.g. `bitcoin-linux-#.#.#.yml.sig`.
+11. You should have 2 files in the manifest directory, the manifest itself, e.g. `veil-linux-#.#.#.yml`, and the detached digital signature, e.g. `veil-linux-#.#.#.yml.sig`.
 12. Commit those directories back to your fork and create a merge request against the master branch of the original project.
 13. If there are other gitian builds done prior to yours, for the same version, compare your manifest file to theirs. They should be the same set of hashes.
 14. All the binaries built during this process are located in result/out.
@@ -76,7 +76,7 @@ This project allows you to build software deterministically. In other words, eac
 
 Deterministic builds produce final binaries that, when hashed, always produce the same hash for all subsequent builds for a given set of inputs. Of the writing of this README, most all build chains produce binaries non-deterministically. The main reason is the inclusion of time stamps and other meta information into the artifact. The gitian-builder project seeks to remove these differences.
 
-To highlight this issue, if you were to compile bitcoin core from source using [these directions](https://github.com/bitcoin/bitcoin/blob/master/doc/build-unix.md) and then repeat the process a few minutes later and then took a hash of the resulting binaries, they would be different, why? All the same software was used as inputs, Bitcoin itself was pointed to the same tag, what's the problem? The problem is that certain software dependenices of Bitcoin insert meta data like timestamps and file directory paths into the final binary. Therefore, a binary produced at time A will be different than a binary produced at time B. The Debian project has an ambitious project to retroactively patch packages in their archive to enable them to produce deterministic builds. This is a tall order because of the breadth of changes across many packages. Here is the current [status](https://tests.reproducible-builds.org/debian/index_issues.html). Until this project is complete, we need a project such as this one.
+To highlight this issue, if you were to compile bitcoin core from source using [these directions](https://github.com/Veil-Project/veil/blob/master/doc/build-unix.md) and then repeat the process a few minutes later and then took a hash of the resulting binaries, they would be different, why? All the same software was used as inputs, Bitcoin itself was pointed to the same tag, what's the problem? The problem is that certain software dependenices of Bitcoin insert meta data like timestamps and file directory paths into the final binary. Therefore, a binary produced at time A will be different than a binary produced at time B. The Debian project has an ambitious project to retroactively patch packages in their archive to enable them to produce deterministic builds. This is a tall order because of the breadth of changes across many packages. Here is the current [status](https://tests.reproducible-builds.org/debian/index_issues.html). Until this project is complete, we need a project such as this one.
 
 ### The current challenge
 It turns out that distributing software has many security-related challenges. One of the main concerns is protecting software from being _tampered with_ before execution on end-users' computer systems.
@@ -140,56 +140,56 @@ All unknowns. Under the circumstances, you have to take a risk that Wlad's signa
 Using the provided convenience scripts:
 
 ```bash
-$ bash build_builder.sh
-$ bash run_builder.sh
+$ bash build_gitian_veil.sh
+$ bash run_gitian_veil.sh
 ```
 
 Please refer the Dockerfile to inspect what platform will be built.
 
-Example: If the 'CMD' section of the Dockerfile specifies '../bitcoin/contrib/gitian-descriptors/gitian-linux.yml', it will build all linux varieties. This includes 32/64 bit and ARM. Please check the bitcoin repo for other descriptors such as Windows and MacOSX. If you change the descriptor, please re-run:
+Example: If the 'CMD' section of the Dockerfile specifies '../veil/contrib/gitian-descriptors/gitian-linux.yml', it will build all linux varieties. This includes 32/64 bit and ARM. Please check the veil repo for other descriptors such as Windows and MacOSX. If you change the descriptor, please re-run:
 
 ```bash
-docker build -t builder .
+docker build -t gitian_veil .
 ```
 
-The first command (build_builder.sh) builds the Linux container and sets up all the prerequisites within the container. The second command (run_builder.sh) actually launches the build process and sends the results to standard output. When the final build is complete, you will see a list of hashes and the final artifact names, the following is an example:
+The first command (build_gitian_veil.sh) builds the Linux container and sets up all the prerequisites within the container. The second command (run_gitian_veil.sh) actually launches the build process and sends the results to standard output. When the final build is complete, you will see a list of hashes and the final artifact names, the following is an example:
 
-> 1924cc6e201e0a1729ca0707e886549593d14eab9cd5acb3798d7af23acab3ae  bitcoin-0.12.1-linux32.tar.gz
-> e57e45c1c16f0b8d69eaab8e4abc1b641f435bb453377a0ac5f85cf1f34bf94b  bitcoin-0.12.1-linux64.tar.gz
-> 58410f1ad8237dfb554e01f304e185c2b2604016f9c406e323f5a4db167ca758  src/bitcoin-0.12.1.tar.gz
-> 09ce06ee669a6f2ae87402717696bb998f0a9a4721f0c5b2d0161c4dcc7e35a8  bitcoin-linux-0.12-res.yml
+> 1924cc6e201e0a1729ca0707e886549593d14eab9cd5acb3798d7af23acab3ae  veil-1.0.4-linux32.tar.gz
+> e57e45c1c16f0b8d69eaab8e4abc1b641f435bb453377a0ac5f85cf1f34bf94b  veil-1.0.4-linux64.tar.gz
+> 58410f1ad8237dfb554e01f304e185c2b2604016f9c406e323f5a4db167ca758  src/veil-1.0.4.tar.gz
+> 09ce06ee669a6f2ae87402717696bb998f0a9a4721f0c5b2d0161c4dcc7e35a8  veil-linux-1.0.4-res.yml
 
-If you don't specify tag, url, or path to gitian config, or use the convenience scripts, then the docker run command will use the defaults located in the Dockerfile 'CMD' value. Keep in mind the 'config' value is a path in the container, not on the host system. The bitcoin directory is located in /shared/bitcoin, this means the config would be in /shared/bitcoin/contrib/gitian-descriptor. You may also use a relative path to the gitian-builder directory. The gitian-builder is located in /shared/gitian-builder, so the config value could be '../bitcoin/contrib/gitian-descriptor/gitian-linux.yml'.
+If you don't specify tag, url, or path to gitian config, or use the convenience scripts, then the docker run command will use the defaults located in the Dockerfile 'CMD' value. Keep in mind the 'config' value is a path in the container, not on the host system. The bitcoin directory is located in /shared/bitcoin, this means the config would be in /shared/veil/contrib/gitian-descriptor. You may also use a relative path to the gitian-builder directory. The gitian-builder is located in /shared/gitian-builder, so the config value could be '../veil/contrib/gitian-descriptor/gitian-linux.yml'.
 
 When running the docker build, using '-v host absolute path:/shared/cache' will ensure a build cache is retained across subsequent builds. Subsequently, using '-v host absolute path:/shared/result' will ensure that final manifests and binaries are available to you from your host system. You can leave out the volume information if you don't need to retain a build cache or results. If you do use a shared cache and/or result directory, please ensure it is readable and writeable by the user running the container. Changing ownership for these directories is host operating system specific. For Mac OS X, it is usually sufficient to ensure the user that runs 'docker run' owns cache and result directory and can also write to those directories as well.
 
 ### Precautions when using provided convenience scripts
 
-If run_builder.sh is run more than once, it will attempt to create a container with the same name as the previous incarnation of run_builder.sh. This will not work, so you will need to remove old containers that have stopped. There is a convenience script for this called 'remove_all_containers.sh'. Please be aware that this script removes all non-running containers regardless of context. If you have other stopped containers for other things, they get deleted too.
+If run_gitian_veil.sh is run more than once, it will attempt to create a container with the same name as the previous incarnation of run_gitian_veil.sh. This will not work, so you will need to remove old containers that have stopped. There is a convenience script for this called 'remove_all_containers.sh'. Please be aware that this script removes all non-running containers regardless of context. If you have other stopped containers for other things, they get deleted too.
 
 Additionally, there is a convenience script called 'remove_all_images.sh', this will remove all images without regardless for context. Be careful with this one.
 
-There is also a script called 'run_builder_console.sh' that is useful should you want a terminal into your guest operation system. This allows you to run commands manually and inspect the vm. Handy for troubleshooting.
+There is also a script called 'run_gitian_veil_console.sh' that is useful should you want a terminal into your guest operation system. This allows you to run commands manually and inspect the vm. Handy for troubleshooting.
 
 Docker has many wonderful features such as creating a new image from a container's changes. This is the commit function. If there was an error during the execution of a container, you can commit back the container's changes to your image and start a new container with that exact state (very helpful).
 
 ```bash
-$ docker commit builder builder:saved
+$ docker commit gitian_veil gitian_veil:saved
 # then remove old containers
 $ bash ./remove_all_containers.sh
 # then start
-$ docker run -it -h builder --name builder \
+$ docker run -it -h gitian_veil --name gitian_veil \
 -v $THISDIR/cache:/shared/cache \
 -v $THISDIR/result:/shared/result \
 --entrypoint=/bin/bash \
-builder:saved -s
+gitian_veil:saved -s
 ```
 
 ### <a name="mac_sdk"></a>Building binaries for Mac OS X
 
 When building binaries intended to be run on Mac OS X, you MUST supply a SDK tarball to the build chain. This project can't supply the MacOSX sdk, it is not allowed by Apple. Here are the directions for obtaining this tarball:
 
-1. Register and download the Apple SDK: see OS X [readme](https://github.com/bitpay/bitcoin/blob/0.12.1-bitcore/doc/README_osx.txt) for complete details. The current SDK is: `MacOSX10.11.sdk`, distributed in [**Xcode 7.3.1**](https://developer.apple.com/devcenter/download.action?path=/Developer_Tools/Xcode_7.3.1/Xcode_7.3.1.dmg). Refer to the `files` entry in `bitcoin/contrib/gitian-descriptors/gitian-osx.yml` to verify the macOS SDK required.
+1. Register and download the Apple SDK: The current SDK is: `MacOSX10.11.sdk`, distributed in [**Xcode 7.3.1**](https://developer.apple.com/devcenter/download.action?path=/Developer_Tools/Xcode_7.3.1/Xcode_7.3.1.dmg). Refer to the `files` entry in `bitcoin/contrib/gitian-descriptors/gitian-osx.yml` to verify the macOS SDK required.
 
 Using a Mac, mount the disk image and create a tarball for the SDK in your shared cache directory:
 
@@ -209,24 +209,24 @@ If you run into permissions problems while using Docker on a SE Linux host syste
 ### How to use PGP/GnuPG to sign your manifest file
 * Fork the following repository in GitHub and then clone your fork:
 
-> https://github.com/bitpay/gitian.sigs
+> https://github.com/Veil-Project/gitian.sigs
 
-* Copy your result files into your fork and sign them. The following example would assume your results file was called: `bitcoin-linux-0.14.1.yml` and it is located in /tmp/result and your forked and cloned gitian.sigs directory is located in /tmp/gitian.sigs and your signing name is 'user'.
+* Copy your result files into your fork and sign them. The following example would assume your results file was called: `veil-linux-1.0.4.yml` and it is located in /tmp/result and your forked and cloned gitian.sigs directory is located in /tmp/gitian.sigs and your signing name is 'user'.
 
 ```bash
 $ git clone https://github.com/user/gitian.sigs /tmp/gitian.sigs
-$ mkdir -p /tmp/gitian.sigs/0.14.1-linux/user
-$ cp /tmp/result/bitcoin-linux-0.14.1-res.yml !$
-$ gpg -b $!/bitcoin-linux-0.14.1.yml
+$ mkdir -p /tmp/gitian.sigs/1.0.4-linux/user
+$ cp /tmp/result/veil-linux-1.0.4-res.yml !$
+$ gpg -b $!/veil-linux-1.0.4.yml
 ```
 
-* Add, commit and push your fork back to your repo and submit a merge request against https://github.com/bitpay/gitian.sigs
+* Add, commit and push your fork back to your repo and submit a merge request against https://github.com/Veil-Project/gitian.sigs
 
 ```bash
 $ cd /tmp/gitian.sigs
-$ git add . && git commit -m "v0.14.1"
+$ git add . && git commit -m "v1.0.4.6"
 $ git push origin master
-# submit a merge request to master branch of bitpay/gitian.sigs
+# submit a merge request to master branch of Veil-Project/gitian.sigs
 ```
 
 ### How to audit the build process
@@ -264,7 +264,7 @@ For example, if I need to allow a non-privileged user to cat any file on the sys
 4. Save the file and:
 
 ```bash
-$ docker build -t builder .
+$ docker build -t gitian_veil .
 ```
 
 ## Offline builds
@@ -273,21 +273,21 @@ It is a good idea to perform your builds while your host operating system and co
 
 Step 1: build your docker image:
 ```bash
-$ docker build -t builder .
+$ docker build -t gitian_veil .
 ```
 
 Step 2: checkout bitcoin to the root of this project (where the Dockerfile is):
 ```bash
-$ git clone https://github.com/bitpay/bitcoin
+$ git clone https://github.com/Veil-Project/veil
 ```
 
 Step 3: disconnect wired and wireless network connections:
 
 TODO what to do about gitian needing to run apt-get install for packages in gitian config
 
-Step 4: run the container using bitcoin as shared volume:
+Step 4: run the container using veil as shared volume:
 ```bash
-$ docker run -v `pwd`/bitcoin:/shared/bitcoin builder
+$ docker run -v `pwd`/veil:/shared/veil gitian_veil
 ```
 
 ### How to read the resulting manifest file
