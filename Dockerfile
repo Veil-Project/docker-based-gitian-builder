@@ -29,6 +29,8 @@ USER ubuntu
 RUN printf "[[ -d /shared/veil ]] || \
 git clone -b \$1 --depth 1 \$2 /shared/veil && \
 cd /shared/gitian-builder; \
-./bin/gbuild --skip-image --commit veil=\$1 --url veil=\$2 \$3" > /home/ubuntu/runit.sh
+./bin/gbuild -j40 --skip-image --commit veil=\$1 --url veil=\$2 \$3" > /home/ubuntu/runit.sh
+CMD ["master","https://github.com/Veil-Project/veil.git","../veil/contrib/gitian-descriptors/gitian-win.yml"]
+CMD ["master","https://github.com/Veil-Project/veil.git","../veil/contrib/gitian-descriptors/gitian-osx.yml"]
 CMD ["master","https://github.com/Veil-Project/veil.git","../veil/contrib/gitian-descriptors/gitian-linux.yml"]
 ENTRYPOINT ["bash", "/home/ubuntu/runit.sh"]
