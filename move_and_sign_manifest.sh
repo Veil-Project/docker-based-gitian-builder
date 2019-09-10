@@ -52,10 +52,6 @@ get_build_name () {
   echo ${1/-res.yml/}
 }
 
-get_tag_and_os() {
-  echo ${1/veil-/}
-}
-
 get_build_sig_name() {
   echo ${1/res.yml/build.assert}
 }
@@ -86,26 +82,41 @@ for manifest in result/*.yml; do
   check_for_gpg
 
   get_input_from_user
-  
-  basename=`basename $manifest` 
-  dir=$(get_build_name "${basename}")
-  tagandos=$(get_tag_and_os "${dir}") 
 
-  manifest_dir="${path_to_gitian_sigs}/${tagandos}/${user}"
+  basename=`basename $manifest` 
+  buildname=$(get_build_name "${basename}")
+
+  # split the build and version information.
+  IFS='-' read -r -a buildparams <<< "$buildname"  
+  buildparamcnt=${#buildparams[@]}
+
+  tagversion="1.0.0.99"
+  osversion="linux"
+
+  # get the version and os information.
+  if [[ buildparamcnt -ge 3 ]]; then
+    tagversion="${buildparams[2]}"
+    osversion="${buildparams[1]}"
+  elif [[ buildparamcnt -ge 2 ]]; then
+     tagversion="${buildparams[1]}"
+  fi
+  versionfoldername="${tagversion}-${osversion}"
+
+  # Create the new sigs folders. 
+  manifest_dir="${path_to_gitian_sigs}/${versionfoldername}/${user}"
   mkdir -p "${manifest_dir}"
   cp "${manifest}" "${manifest_dir}"
 
-  # rename the file from res.yml to build.assert
-  buildsigname=$(get_build_sig_name "${basename}")
-  mv "${manifest_dir}/${basename}" "${manifest_dir}/${buildsigname}"
-
+  # rename the files in the manifest_dir from res.yml to build.assert
+  for file in ${manifest_dir}/*; do mv "$file" "$(get_build_sig_name "${file}")"; done
+  
   #sign the file.
+  buildsigname=$(get_build_sig_name "${basename}")
   manifest_file="${manifest_dir}/${buildsigname}"
   sign_manifest "${manifest_file}"
 
   #rename the signed file.
-  signedfile="${manifest_file}.asc"
-  mv "${signedfile}" "${signedfile/.asc/.sig}"
+  for file in ${manifest_dir}/*.asc; do mv "$file" "${file/.asc/.sig}"; done
 
 done
 
