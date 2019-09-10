@@ -52,6 +52,14 @@ get_build_name () {
   echo ${1/-res.yml/}
 }
 
+get_tag_and_os() {
+  echo ${1/veil-/}
+}
+
+get_build_sig_name() {
+  echo ${1/res.yml/build.assert}
+}
+
 check_for_gpg () {
   hash gpg 2>/dev/null || { echo >&2 "This script requires the 'gpg' program, it may not be installed or not on your path."; exit 1; }
 }
@@ -78,16 +86,26 @@ for manifest in result/*.yml; do
   check_for_gpg
 
   get_input_from_user
-
-  basename=`basename $manifest`
+  
+  basename=`basename $manifest` 
   dir=$(get_build_name "${basename}")
+  tagandos=$(get_tag_and_os "${dir}") 
 
-  manifest_dir="${path_to_gitian_sigs}/${dir}/${user}"
+  manifest_dir="${path_to_gitian_sigs}/${tagandos}/${user}"
   mkdir -p "${manifest_dir}"
   cp "${manifest}" "${manifest_dir}"
-  manifest_file="${manifest_dir}/${basename}"
 
+  # rename the file from res.yml to build.assert
+  buildsigname=$(get_build_sig_name "${basename}")
+  mv "${manifest_dir}/${basename}" "${manifest_dir}/${buildsigname}"
+
+  #sign the file.
+  manifest_file="${manifest_dir}/${buildsigname}"
   sign_manifest "${manifest_file}"
+
+  #rename the signed file.
+  signedfile="${manifest_file}.asc"
+  mv "${signedfile}" "${signedfile/.asc/.sig}"
 
 done
 
