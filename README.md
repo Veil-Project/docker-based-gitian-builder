@@ -56,7 +56,13 @@ $ gpg -b gitian.sigs/<version>/<name>/<manifest yml>
 ```
 
 11. You should have 2 files in the manifest directory, the manifest itself, e.g. `veil-linux-#.#.#.yml`, and the detached digital signature, e.g. `veil-linux-#.#.#.yml.sig`.
-12. Commit those directories back to your fork and create a merge request against the master branch of the original project.
+
+12. Use the convenience script to commit and push the manifest and signature files:
+
+```bash
+$ bash push_sigs.sh
+```
+
 13. If there are other gitian builds done prior to yours, for the same version, compare your manifest file to theirs. They should be the same set of hashes.
 14. All the binaries built during this process are located in result/out.
 15. To cleanup all files created during this process:
