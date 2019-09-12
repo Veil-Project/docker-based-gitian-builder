@@ -52,6 +52,10 @@ get_build_name () {
   echo ${1/-res.yml/}
 }
 
+get_build_sig_name() {
+  echo ${1/res.yml/build.assert}
+}
+
 check_for_gpg () {
   hash gpg 2>/dev/null || { echo >&2 "This script requires the 'gpg' program, it may not be installed or not on your path."; exit 1; }
 }
@@ -79,15 +83,40 @@ for manifest in result/*.yml; do
 
   get_input_from_user
 
-  basename=`basename $manifest`
-  dir=$(get_build_name "${basename}")
+  basename=`basename $manifest` 
+  buildname=$(get_build_name "${basename}")
 
-  manifest_dir="${path_to_gitian_sigs}/${dir}/${user}"
+  # split the build and version information.
+  IFS='-' read -r -a buildparams <<< "$buildname"  
+  buildparamcnt=${#buildparams[@]}
+
+  tagversion="1.0.0.99"
+  osversion="linux"
+
+  # get the version and os information.
+  if [[ buildparamcnt -ge 3 ]]; then
+    tagversion="${buildparams[2]}"
+    osversion="${buildparams[1]}"
+  elif [[ buildparamcnt -ge 2 ]]; then
+     tagversion="${buildparams[1]}"
+  fi
+  versionfoldername="${tagversion}-${osversion}"
+
+  # Create the new sigs folders. 
+  manifest_dir="${path_to_gitian_sigs}/${versionfoldername}/${user}"
   mkdir -p "${manifest_dir}"
   cp "${manifest}" "${manifest_dir}"
-  manifest_file="${manifest_dir}/${basename}"
 
+  # rename the files in the manifest_dir from res.yml to build.assert
+  for file in ${manifest_dir}/*; do mv "$file" "$(get_build_sig_name "${file}")"; done
+  
+  #sign the file.
+  buildsigname=$(get_build_sig_name "${basename}")
+  manifest_file="${manifest_dir}/${buildsigname}"
   sign_manifest "${manifest_file}"
+
+  #rename the signed file.
+  for file in ${manifest_dir}/*.asc; do mv "$file" "${file/.asc/.sig}"; done
 
 done
 
