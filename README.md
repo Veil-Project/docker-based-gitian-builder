@@ -10,7 +10,16 @@
 
 For building Veil for ALL platforms and architectures in one command:
 ```bash
-$ bash build_veil.sh # optionally include a branch/tag and repo url e.g. bash build_veil.sh v1.0.4.6  https://github.com/Veil-Project/veil
+$ bash build_veil.sh  
+# doc: bash build_veil.sh {tag or branch} {repo url} {gbuild # of threads to use} {amount of memory to use}
+# example: bash build_veil.sh v1.0.4.6 https://github.com/Veil-Project/veil 4 4096
+# parameters: 
+#   {tag or branch}: optional - defaults to master
+#   {repo}: optional - defaults to https://github.com/Veil-Project/veil
+#   {gbuild # of threads to use}: optional - defaults to 4 cores.
+#   {amount of memory to use}: optional - defaults to
+# This will build tag v1.0.4.6 from the https://github.com/Veil-Project/veil repo using 4 processor cores and 4096MB of memory.
+# Creates Mac, Linux, Windows binaries, 32 and 64 bit as well as ARM.
 ```
 Once complete, proceed to [step 8](#step8).
 
