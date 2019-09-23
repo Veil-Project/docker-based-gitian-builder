@@ -121,4 +121,3 @@ for manifest in result/*.yml; do
 done
 
 echo "Done! Please create a merge request back to gitian.sigs upstream."
-© 2019 GitHub, Inc.
