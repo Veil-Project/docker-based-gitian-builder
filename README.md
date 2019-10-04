@@ -1,87 +1,81 @@
-# Gitian Builder using Docker images and containers.
+# Veil Wallet - Gitian Builder using Docker images and containers
 
-## TL;DR / Executive Summary
+## Convince script
+This is the preferred method. The script will do most of the work and prompted the user for any necessary information.
+##### Script Overview
+* Configure the host system
+* Compile the wallet binaries
+* Sign the manifest files
+* Commit the manifest and signature files to the gitian sigs repo
+Note: The script will automatically download all dependencies if the user approves.  
 
-1. Install [docker](https://docker.io) for your platform
-2. Clone or fork [this](https://github.com/Veil-Project/docker-based-gitian-builder) GH repo
-3. Ensure docker daemon is operating by starting the application. You should be able to run 'docker' at the command line without error.
-4. Building for Mac requires [this step](#building-binaries-for-mac-os-x) to be completed
-5. Run the convenience scripts in this repo:
+1. Clone or fork [this](https://github.com/Veil-Project/docker-based-gitian-builder) GitHub repo
+2. Run everything in one command:
+    ```bash
+    $ bash run_all.sh 
+    ```
 
-For building Veil for ALL platforms and architectures in one command:
-```bash
-$ bash build_veil.sh  
-# doc: bash build_veil.sh {tag or branch} {repo url} {gbuild # of threads to use} {amount of memory to use}
-# example: bash build_veil.sh v1.0.4.6 https://github.com/Veil-Project/veil 4 4096
-# parameters: 
-#   {tag or branch}: optional - defaults to master
-#   {repo}: optional - defaults to https://github.com/Veil-Project/veil
-#   {gbuild # of threads to use}: optional - defaults to 4 cores.
-#   {amount of memory to use}: optional - defaults to
-# This will build tag v1.0.4.6 from the https://github.com/Veil-Project/veil repo using 4 processor cores and 4096MB of memory.
-# Creates Mac, Linux, Windows binaries, 32 and 64 bit as well as ARM.
-```
-Once complete, proceed to [step 8](#step8).
-
-For building individual platforms:
-```bash
-$ bash ./build_gitian_veil.sh # installs the base virtual machine (Ubuntu 18.04 Bionic) and dependencies, takes 5-10 minutes
-$ bash ./run_gitian_veil.sh # builds veil itself per the argument to the CMD instruction in Dockerfile, takes 60+ minutes
-```
-
-Repeat the process for Windows and MacOSX targets (these will take less time because common dependencies are cached):
-
-5. Edit the Dockerfile:
-
-```bash
-$ nano Dockerfile # use a text editor that you are comfortable with
-```
-
-6. Change the gitian descriptor in the 'CMD' line (it might say ../veil/contrib/gitian-descriptors/gitian-linux.yml currently) to: ../veil/contrib/gitian-descriptors/gitian-osx.yml or ../veil/contrib/gitian-descriptors/gitian-win.yml
-7. Save the file and rerun:
-
-```bash
-$ bash remove_all_containers.sh # this will remove all stopped/exited containers
-$ bash build_gitian_veil.sh
-$ bash run_gitian_veil.sh
-```
-
-Please note that you will need the Mac development SDK in order to build for Mac. Please see the sections [below](#mac_sdk) about how to get that tarball.
-
-The end result is that you will have a manifest and build artifacts/binaries in the directory 'result/out'.
-
-<a name="step8"></a>8. Fork [gitian.sigs](https://github.com/Veil-Project/gitian.sigs)
-
-9. Use the convenience script to add your manifest files and sign them:
-
-```bash
-$ bash move_and_sign_manifest.sh
-```
-
-10. Sign the yml manifest if you have a gpg key setup for yourself (if not skip this step and go to step 13 to compare manifests):
-
-```bash
-$ gpg -b gitian.sigs/<version>/<name>/<manifest yml>
-```
-
-11. You should have 2 files in the manifest directory, the manifest itself, e.g. `veil-linux-#.#.#.yml`, and the detached digital signature, e.g. `veil-linux-#.#.#.yml.sig`.
-
-12. Use the convenience script to commit and push the manifest and signature files:
-
-```bash
-$ bash push_sigs.sh
-```
-
-13. If there are other gitian builds done prior to yours, for the same version, compare your manifest file to theirs. They should be the same set of hashes.
-14. All the binaries built during this process are located in result/out.
-15. To cleanup all files created during this process:
-
+## Script by script
+1. Clone or fork [this](https://github.com/Veil-Project/docker-based-gitian-builder) GitHub repo
+2. Install [docker](https://docker.io) for your platform
+   On Linux you can run:
+   ```bash
+    $ bash docker_install.sh 
+   ```
+3. If docker was previously install clean up containers and images.
+   ```bash
+    $ bash remove_all_containers.sh 
+    $ bash remove_all_images.sh
+   ```
+4. Build the Veil wallet for ALL platforms and architectures in one command:
+    ```bash
+    $ bash build_veil.sh  
+    # doc: bash build_veil.sh {tag or branch} {repo url} {operating systems to build} {gbuild # of threads to use} {amount of memory to use} 
+    # example: bash build_veil.sh v1.0.4.6 https://github.com/Veil-Project/veil osx-win-linux 4 4096 
+    # parameters: 
+    #   {tag or branch} (optional): defaults to master
+    #   {repo url} (optional): defaults to https://github.com/Veil-Project/veil
+    #   {operating systems to build} (optional): defaults to osx-win-linux
+    #   {gbuild # of threads to use} (optional): defaults to 4 cores.
+    #   {amount of memory to use} (optional): defaults to 4096
+    # This script will build tag v1.0.4.6 from the https://github.com/Veil-Project/veil repo using 4 processor cores and 4096MB of memory.
+    # It creates Mac, Linux, Windows binaries, 32 and 64 bit as well as ARM.
+    # You will be prompted for any parameters you don't submit via the cmd line.
+    ```
+5. Use the convenience script to add your manifest files and sign them:
+    ```bash
+    $ bash move_and_sign_manifest.sh  
+    # doc: bash move_and_sign_manifest.sh {signer} {path to gitian sigs} {easysigning}
+    # example: bash move_and_sign_manifest.sh "4x13" "../gitian.sigs" --easysigning
+    # parameters: 
+    #   {signer} (optional): defaults to "4x13"
+    #   {path to gitian sigs} (optional): defaults to ../gitian.sigs
+    #   {easysigning} (optional): defaults to true
+    # This script will sign the sign the mainifest files created by the gitian build.
+    # The mainifest and signature files will be move to the gitian sigs path.
+    # A text file, SHASUM256, containing the build hashes will be created and stored in the gitian build output folder(/result/out/)
+    # You will be prompted for any parameters you don't submit via the cmd line.
+   ```
+6. Use the convenience script to commit and push the manifest and signature files:
+    ```bash
+    $ bash push_sigs.sh
+    # doc: bash push_sigs.sh {signer} {tag or branch} {path to gitian sigs}
+    # example: bash push_sigs.sh "4x13" "v1.0.4.6" "../gitian.sigs"
+    # parameters: 
+    #   {signer} (optional): defaults to "4x13"
+    #   {tag or branch} (optional): defaults to master
+    #   {path to gitian sigs} (optional): defaults to ../gitian.sigs
+    # This script will commit manifest and signature files to the repo referenced at the gitian sigs path.
+    # You will be prompted for any parameters you don't submit via the cmd line.
+    ```
+7. If there are other gitian builds done prior to yours, for the same version, compare your manifest file to theirs. They should be the same set of hashes.
+8. All the binaries built during this process and a text file, SHASUM256, containing the build hashes are located in result/out. 
+9. To cleanup all files created during this process:
 ```bash
 $ bash remove_all_containers.sh
 $ bash remove_all_images.sh
 $ rm -fr cache/* result/*
 ```
-
 
 ## What does this project do?
 
@@ -314,5 +308,3 @@ The out_manifests is a list of output artifacts that were produced by the build 
 If the hashes differ, then you will need to find out why. This is where the in_manifests come in. The output hashes are created from the output binaries. The output binaries are built based on the dependencies (the input packages). If your input hashes differ from others' input hashes, then the most likely issue is that Ubuntu has released updates to packages contained in your input manifest.
 
 Each time gitian builder builds your packages, it pulls the latest packages needed for the build from Ubuntu. Those packages might be newer than those used by other gitian builders you are comparing results with. The fix for this is either rebuild with the same packages that the other gitian builders used as inputs or ask those same gitian builders to rebuild with the newer inputs. It is a bit harder for you to build with older inputs because they may not be easily available from normal means. Using older inputs is also a bit risky because of the fact that was probably a reason the inputs were updated. It is best to ask for other gitian builders to perform a new build, if possible.
-
-
