@@ -12,7 +12,7 @@ Note: The script will automatically download all dependencies if the user approv
 1. Clone or fork [this](https://github.com/Veil-Project/docker-based-gitian-builder) GitHub repo
 2. Run everything in one command:
     ```bash
-    $ bash run_all.sh 
+    $ sudo bash run_all.sh 
     ```
 
 ## Script by script
@@ -20,16 +20,16 @@ Note: The script will automatically download all dependencies if the user approv
 2. Install [docker](https://docker.io) for your platform
    On Linux you can run:
    ```bash
-    $ bash docker_install.sh 
+    $ sudo bash docker_install.sh 
    ```
 3. If docker was previously install clean up containers and images.
    ```bash
-    $ bash remove_all_containers.sh 
-    $ bash remove_all_images.sh
+    $ sudo bash remove_all_containers.sh 
+    $ sudo bash remove_all_images.sh
    ```
 4. Build the Veil wallet for ALL platforms and architectures in one command:
     ```bash
-    $ bash build_veil.sh  
+    $ sudo bash build_veil.sh  
     # doc: bash build_veil.sh {tag or branch} {repo url} {operating systems to build} {gbuild # of threads to use} {amount of memory to use} 
     # example: bash build_veil.sh v1.0.4.6 https://github.com/Veil-Project/veil osx-win-linux 4 4096 
     # parameters: 
@@ -44,7 +44,7 @@ Note: The script will automatically download all dependencies if the user approv
     ```
 5. Use the convenience script to add your manifest files and sign them:
     ```bash
-    $ bash move_and_sign_manifest.sh  
+    $ sudo bash move_and_sign_manifest.sh  
     # doc: bash move_and_sign_manifest.sh {signer} {path to gitian sigs} {easysigning}
     # example: bash move_and_sign_manifest.sh "4x13" "../gitian.sigs" --easysigning
     # parameters: 
@@ -58,7 +58,7 @@ Note: The script will automatically download all dependencies if the user approv
    ```
 6. Use the convenience script to commit and push the manifest and signature files:
     ```bash
-    $ bash push_sigs.sh
+    $ sudo bash push_sigs.sh
     # doc: bash push_sigs.sh {signer} {tag or branch} {path to gitian sigs}
     # example: bash push_sigs.sh "4x13" "v1.0.4.6" "../gitian.sigs"
     # parameters: 
@@ -72,8 +72,8 @@ Note: The script will automatically download all dependencies if the user approv
 8. All the binaries built during this process and a text file, SHASUM256, containing the build hashes are located in result/out. 
 9. To cleanup all files created during this process:
 ```bash
-$ bash remove_all_containers.sh
-$ bash remove_all_images.sh
+$ sudo bash remove_all_containers.sh
+$ sudo bash remove_all_images.sh
 $ rm -fr cache/* result/*
 ```
 
