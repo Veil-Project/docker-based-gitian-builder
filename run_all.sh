@@ -110,20 +110,29 @@ else
     $THISDIR/docker_install.sh  
 fi
 
+echo "Clearing old cache folder" 
+sudo rm -rf ${THISDIR}/cache/*
+
+echo "Clearing old build output files"
+sudo rm -rf ${THISDIR}/result/*
+
+echo "Setting folder permissions"
+sudo chmod -R a+rw ${THISDIR}/
+
 echo -e "${cyan} "
 echo "******************************************************************"
 echo "****                       SDK Download                       ****"
 echo -e "******************************************************************${reset}"
 echo "Build for Mac selected. Checking for OSX SDK."
-if [[ ! -f "$THISDIR/cache/MacOSX10.11.sdk.tar.gz" ]]; then
-    echo -n "MacOSX10.11.sdk.tar.gz does not exist in cache. Downloading it now:"
-    echo "Downloading MacOSX10.11.sdk.tar.gz to $THISDIR/cache/MacOSX10.11.sdk.tar.gz."
+if [[ ! -f "$THISDIR/cache/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz" ]]; then
+    echo -n "Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz does not exist in cache. Downloading it now:"
+    echo "Downloading Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz to $THISDIR/cache/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz"
     cd ${THISDIR}/cache
-    wget -O MacOSX10.11.sdk.tar.gz "https://www.dropbox.com/s/i6ytzweevpsb2ic/MacOSX10.11.sdk.tar.gz"
+    wget -O Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz "https://github.com/Veil-Project/build-sdks/raw/0444246d7c16186dad1738c275bb41464377eb06/OSX/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz"
     cd ${THISDIR}
-    echo -e "${green}MacOSX10.11.sdk.tar.gz Download load complete.${reset}"
+    echo -e "${green}Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz Download load complete.${reset}"
 else
-      echo -e "${green}MacOSX10.11.sdk.tar.gz found in cache!${reset}"
+      echo -e "${green}Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz found in cache!${reset}"
 fi
 
 echo -e "${cyan} "
